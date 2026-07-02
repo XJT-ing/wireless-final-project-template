@@ -1,5 +1,6 @@
 import argparse
 import json
+import math
 from pathlib import Path
 
 import matplotlib
@@ -164,14 +165,33 @@ def run_chain(input_path, output_path, snr_db, seed, modulation, channel_name):
     return metrics
 
 
+def valid_snr(value):
+    try:
+        snr = float(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("--snr must be a number in dB") from exc
+    if not math.isfinite(snr):
+        raise argparse.ArgumentTypeError("--snr must be finite")
+    if snr < 0 or snr > 60:
+        raise argparse.ArgumentTypeError("--snr must be in the range [0, 60] dB")
+    return snr
+
+
+def existing_file(value):
+    path = Path(value)
+    if not path.exists() or not path.is_file():
+        raise argparse.ArgumentTypeError(f"input file does not exist: {value}")
+    return path
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Wireless file transfer baseband simulator")
-    parser.add_argument("--input", required=True, help="Input UTF-8 text file")
+    parser.add_argument("--input", required=True, type=existing_file, help="Input UTF-8 text file")
     parser.add_argument("--output", required=True, help="Recovered output text file")
-    parser.add_argument("--snr", type=float, default=12.0, help="AWGN SNR in dB")
+    parser.add_argument("--snr", type=valid_snr, default=12.0, help="AWGN SNR in dB, range [0, 60]")
     parser.add_argument("--seed", type=int, default=2026, help="Random seed")
-    parser.add_argument("--mod", default="qpsk", help="Modulation, baseline qpsk")
-    parser.add_argument("--channel", default="awgn", help="Channel, baseline awgn")
+    parser.add_argument("--mod", type=str.lower, choices=["qpsk"], default="qpsk", help="Modulation, baseline qpsk")
+    parser.add_argument("--channel", type=str.lower, choices=["awgn"], default="awgn", help="Channel, baseline awgn")
     return parser.parse_args()
 
 

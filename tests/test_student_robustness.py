@@ -1,4 +1,6 @@
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -49,3 +51,52 @@ def test_low_snr_still_writes_metrics(tmp_path):
     assert "text_match_rate" in loaded
     assert metrics["snr_db"] == 0.0
 
+
+def test_cli_rejects_invalid_parameters():
+    bad_snr = subprocess.run(
+        [
+            sys.executable,
+            "main.py",
+            "--input",
+            "Test.txt",
+            "--output",
+            "results/invalid.txt",
+            "--snr",
+            "nan",
+            "--seed",
+            "2026",
+            "--mod",
+            "qpsk",
+            "--channel",
+            "awgn",
+        ],
+        text=True,
+        capture_output=True,
+        timeout=20,
+    )
+    assert bad_snr.returncode != 0
+    assert "snr" in bad_snr.stderr.lower()
+
+    bad_mod = subprocess.run(
+        [
+            sys.executable,
+            "main.py",
+            "--input",
+            "Test.txt",
+            "--output",
+            "results/invalid.txt",
+            "--snr",
+            "12",
+            "--seed",
+            "2026",
+            "--mod",
+            "16qam",
+            "--channel",
+            "awgn",
+        ],
+        text=True,
+        capture_output=True,
+        timeout=20,
+    )
+    assert bad_mod.returncode != 0
+    assert "invalid choice" in bad_mod.stderr.lower()
