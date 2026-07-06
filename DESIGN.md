@@ -52,3 +52,20 @@ Important metrics include `snr_db`, `seed`, `modulation`, `channel`, `payload_bi
 ## 6. Expected Results and Failure Analysis
 
 At SNR >= 12 dB in AWGN with fixed seed, Viterbi decoding and a clear preamble should recover `received.txt` exactly, so BER is expected to be 0 and `text_match_rate` is 1.0. At lower SNR, noise can first damage QPSK hard decisions or reduce the Synchronization correlation peak. If the frame start is wrong, length and CRC fail quickly; if only a few data symbols are wrong, Viterbi decoding can correct many isolated errors, otherwise BER and FER rise. The BER-SNR curve should decrease as SNR increases, and the QPSK constellation should cluster more tightly around the four normalized points at high SNR.
+
+## 7. Hidden Validation and Boundary Topics
+
+The implementation explicitly covers common hidden-validation topics:
+
+- Different UTF-8 input text, including Chinese, English, punctuation, mixed length, and empty payload behavior.
+- Payload length, convolutional-code tail bits, and QPSK padding are separated by `original_length_32` and `encoded_payload_length_32`.
+- Different `seed` values reproduce scrambling, AWGN, and simulated synchronization offsets.
+- Valid SNR values must be finite and in `[0, 60] dB`; invalid SNR values such as `nan`, infinity, negative SNR, or non-numeric strings are rejected by the CLI.
+- Unsupported modulation or channel parameters, such as `--mod 16qam` or a non-AWGN channel in the baseline CLI, are rejected with clear argparse errors.
+- Missing input files are rejected before the communication chain starts; output directories are created automatically.
+- `metrics.json` follows a stable schema with `snr_db`, `seed`, `modulation`, `channel`, `payload_bits`, `ber`, `fer`, `text_match_rate`, `checksum_pass`, and `sync_start_index`.
+- Low-SNR runs may fail recovery, but still produce BER, FER, text_match_rate, checksum status, synchronization index, and plots for diagnosis.
+- The receiver uses preamble correlation for synchronization and does not assume the frame start is known.
+- The project does not hard-code public-test input, expected output, or intermediate bit streams.
+
+Possible future extensions include soft-decision Viterbi decoding, Rayleigh/Rician fading channels, equalization, OFDM, and BPSK/16-QAM comparison experiments. These extensions do not replace the required QPSK + AWGN baseline.

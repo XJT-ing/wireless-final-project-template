@@ -15,3 +15,9 @@ The full mock chain used UTF-8 source bits, Scramble, convolutional Channel Enco
 ## Mock Test 4: Low-SNR Failure Behavior
 
 At low SNR the design may produce bit errors or CRC failure. Revision: the CLI always writes `metrics.json` and plots even when text is not perfectly recovered, preventing failure cases from hiding diagnostic information.
+
+## Mock Test 5: CLI Boundary and Hidden-Validation Topics
+
+Mock CLI calls were added for invalid SNR and unsupported modulation values. The issue found was that accepting `nan`, infinity, negative SNR, or unsupported modulation would make generated metrics meaningless. Revision: `main.py` now validates `--snr` as a finite value in `[0, 60] dB`, restricts `--mod` to `qpsk`, restricts `--channel` to `awgn`, and checks that the input file exists before running the communication chain.
+
+The test plan was also updated to mention `invalid_snr`, `invalid_modulation`, `missing_input`, `empty_input`, `padding`, `metrics_schema`, `sync_offset`, and `low_snr` as explicit hidden-validation topics.

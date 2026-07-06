@@ -29,3 +29,8 @@ For the teacher-provided `Test.txt`, the current result is:
 
 The first bottleneck at very low SNR is usually QPSK hard-decision demodulation, because noisy samples may cross constellation decision boundaries. A second risk is synchronization: if the preamble correlation peak is not dominant, the receiver may parse the wrong frame start and fail CRC. The pseudo-random preamble was selected to reduce ambiguous correlation peaks. CRC/checksum failure is therefore a useful diagnostic signal: it distinguishes a recovered clean frame from a corrupted or misaligned frame.
 
+## Boundary Behavior
+
+The CLI rejects invalid experiment parameters before producing any misleading result files. Invalid SNR values such as `nan`, infinity, negative values, or non-numeric strings are rejected. Unsupported modulation or channel names are also rejected because the baseline experiment is defined for QPSK over AWGN. Missing input files are reported before the transmitter chain starts. These checks protect the metrics schema and make hidden validation results easier to interpret.
+
+For valid but difficult channel conditions, such as low SNR, the system does not claim successful recovery unless CRC and text comparison pass. It still writes BER, FER, text_match_rate, checksum_pass, sync_start_index, and plots so the failure can be diagnosed from constellation spread, BER-SNR trend, and synchronization peak behavior.

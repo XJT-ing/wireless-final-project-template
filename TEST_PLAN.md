@@ -22,3 +22,16 @@
 ## Public and Hidden Test Strategy
 
 The public tests are run with `pytest public_tests -q`. Hidden tests may change text, SNR, seed, and synchronization offset, so implementation must use the CLI arguments and must not hard-code public input or expected output.
+
+## Boundary and Documentation Topic Coverage
+
+Additional regression tests and manual checks cover these hidden-grading topics:
+
+1. `invalid_snr`: reject `nan`, infinity, negative SNR, and non-numeric SNR before running the chain.
+2. `invalid_modulation`: reject unsupported modulation values such as `16qam`; QPSK remains the required baseline.
+3. `missing_input`: reject a missing `--input` file with a clear CLI error.
+4. `empty_input`: source coding and metrics behavior should remain defined for an empty text payload.
+5. `padding`: verify source length, convolutional tail bits, and QPSK padding are removed by length fields.
+6. `metrics_schema`: verify required metrics fields and boolean checksum status are written.
+7. `sync_offset`: verify random 0 to 128-symbol prefixes are detected by preamble correlation.
+8. `low_snr`: allow recovery failure while still generating BER, FER, text_match_rate, checksum status, and plots.
